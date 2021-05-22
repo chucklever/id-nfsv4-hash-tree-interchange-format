@@ -4,7 +4,7 @@
 
 <rfc
  category="std"
- docName="draft-cel-nfsv4-hash-interchange-format-latest"
+ docName="draft-cel-nfsv4-hash-tree-interchange-format-latest"
  ipr="trust200902"
  obsoletes=""
  scripts="Common,Latin"
@@ -24,7 +24,7 @@
 Attestation of File Content using an X.509 Certificate
 </title>
 
-<seriesInfo name="Internet-Draft" value="draft-cel-nfsv4-hash-interchange-format-latest"/>
+<seriesInfo name="Internet-Draft" value="draft-cel-nfsv4-hash-tree-interchange-format-latest"/>
 
 <author initials="C." surname="Lever" fullname="Charles Lever" role="editor">
 <organization abbrev="Oracle" showOnFrontPage="true">
@@ -82,7 +82,7 @@ Working Group information is available at
 </t>
 <t>
 Submit suggestions and changes as pull requests at
-<eref target="https://github.com/chucklever/i-d-hash-interchange-format"/>.
+<eref target="https://github.com/chucklever/i-d-hash-tree-interchange-format"/>.
 Instructions are on that page.
 </t>
 </note>
