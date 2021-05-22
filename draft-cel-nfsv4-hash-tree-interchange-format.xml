@@ -1,0 +1,1023 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE rfc SYSTEM "rfc2629-xhtml.ent">
+<?xml-stylesheet type="text/xsl" href="rfc2629.xslt"?>
+
+<rfc
+ category="std"
+ docName="draft-cel-nfsv4-hash-interchange-format-latest"
+ ipr="trust200902"
+ obsoletes=""
+ scripts="Common,Latin"
+ sortRefs="true"
+ submissionType="IETF"
+ symRefs="true"
+ tocDepth="2"
+ tocInclude="true"
+ updates=""
+ version="3"
+ xml:lang="en"
+ xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<front>
+
+<title abbrev="Hash Tree Interchange Format">
+Attestation of File Content using an X.509 Certificate
+</title>
+
+<seriesInfo name="Internet-Draft" value="draft-cel-nfsv4-hash-interchange-format-latest"/>
+
+<author initials="C." surname="Lever" fullname="Charles Lever" role="editor">
+<organization abbrev="Oracle" showOnFrontPage="true">
+Oracle Corporation
+</organization>
+<address>
+<postal>
+<street/>
+<city/>
+<region/>
+<code/>
+<country>United States of America</country>
+</postal>
+<email>chuck.lever@oracle.com</email>
+</address>
+</author>
+
+<date/>
+
+<area>Transport</area>
+<workgroup>Network File System Version 4</workgroup>
+
+<abstract>
+<t>
+This document describes a compact open format for
+transporting
+and
+storing
+an abbreviated form of a cryptographically signed hash tree.
+Receivers use this representation
+to reconstitute a hash tree
+and
+verify the integrity of file content protected by that tree.
+</t>
+<t>
+An X.509 certificate
+encapsulates
+and
+protects
+the hash tree metadata and provides cryptographic provenance.
+Therefore this document updates
+the Internet X.509 certificate profile specified in
+<xref target="RFC5280" format="default" sectionFormat="of"/>.
+</t>
+</abstract>
+
+<note removeInRFC="true">
+<t>
+Discussion of this draft occurs
+on the NFSv4 working group mailing list (nfsv4@ietf.org),
+archived at
+<eref target="https://mailarchive.ietf.org/arch/browse/nfsv4/"/>.
+Working Group information is available at
+<eref target="https://datatracker.ietf.org/wg/nfsv4/about/"/>.
+</t>
+<t>
+Submit suggestions and changes as pull requests at
+<eref target="https://github.com/chucklever/i-d-hash-interchange-format"/>.
+Instructions are on that page.
+</t>
+</note>
+
+</front>
+
+<middle>
+
+<section
+ anchor="section_CA37E3AA-5491-4EAC-B733-F2E7B44F0009"
+ numbered="true"
+ removeInRFC="false"
+ toc="default">
+<name>Introduction</name>
+<t>
+Linear hashing is a common technique for protecting the integrity of data.
+A fixed-size hash, or digest, is computed over the bytes in a data set
+using a deterministic and collision-resistant algorithm.
+An example of such an algorithm is
+<xref target="SHA256" format="default" sectionFormat="of"/>.
+</t>
+<t>
+Filesystem designers often employ this technique
+to protect the integrity of both individual files
+and filesystem metadata.
+For instance, to protect an individual file's integrity,
+the filesystem computes a digest
+from the beginning of its content to its end.
+The filesystem then stores that digest along with the file content.
+The integrity of that digest is further protected
+by cryptographically signing it.
+The filesystem recomputes a digest when the file is retrieved
+and compares
+the locally computed digest
+with
+the saved digest
+to verify the file content.
+</t>
+<t>
+Linear hashing has proven to be an inadequate fit
+with the way filesystems have to manage file content.
+A content verifier must read the entire file to validate its digest.
+Reading whole files is not onerous for small files,
+but reading a large file every time
+its digest needs verification quickly becomes costly.
+</t>
+<t>
+Filesystems read files from persistent storage
+in small pieces (blocks) on demand
+to manage large files efficiently.
+When memory is short, these blocks might be evicted
+and then read again when needed later.
+There is no physical guarantee that
+a subsequent read of a particular block will
+give the same result as an earlier one.
+Thus a file's digest verification becomes stale,
+sometimes quickly.
+</t>
+<t>
+To address this shortcoming, some have turned to hash trees
+<xref target="HT" format="default" sectionFormat="of"/>.
+A hash tree leaf node contains the linear hash of a portion
+of the protected content.
+Interior nodes in a hash tree contain hashes of the nodes below them,
+up to the root node which stores a hash of everything in the tree.
+Validating a leaf node means validating only the portion of the file
+content protected by that node and its parents in the hash tree.
+</t>
+<t>
+Hash trees present a new challenge, however.
+Even when signed, a single linear hash is the same size
+no matter how much content it protects.
+A hash tree, however, is not a fixed-size piece of metadata.
+Its size increases logarithmically with
+the size of the content it protects.
+</t>
+<t>
+Transporting and storing a hash tree can therefore be unwieldy.
+It is particularly a problem for legacy storage formats
+that do not have mechanisms to handle
+extensive amounts of variably-sized metadata.
+Software distribution and packaging formats might not be
+flexible enough to transport this possibly large amount of integrity data.
+Backup mechanisms such as tar or rsync might be unable
+to handle variably-sized metadata per file.
+</t>
+<t>
+We can readily extend network file storage protocols
+to exchange a hash tree associated with every file.
+However, file servers and the ecosystems where they run
+must also be updated to manage and store this metadata.
+Thus it is not merely an issue of enriching a file storage protocol
+to handle a new metadata type.
+</t>
+
+<section
+ anchor="section_FAB7DA16-2580-4BE8-8099-1FAB57EC5113"
+ numbered="true"
+ removeInRFC="false"
+ toc="default">
+<name>Combining These Solutions</name>
+<t>
+The root hash of a hash tree is itself
+a fixed-size piece of metadata
+similar to a linear hash.
+The only disadvantage is that an verifier must
+reconstitute the hash tree using the root hash
+and the file content.
+If the verifier caches each tree on local trusted storage,
+that is nearly as good as storing the whole tree.
+The verifier can then use the locally cached tree
+to validate portions of the file it protects
+without reading each file repeatedly
+from remote or untrusted durable storage.
+</t>
+<t>
+To further insulate a root hash from unwanted change,
+an attestor can protect it with a cryptographic signature.
+This cryptographic protection then covers
+the entire hash tree and the file content it protects.
+</t>
+<t>
+Such cryptographic protection is
+independent of the file's storage format
+and
+its underlying durable media.
+The file (and the root hash that protects it) can be copied,
+transmitted over networks,
+or
+backed up and restored
+while its protection is maintained end-to-end.
+</t>
+</section>
+
+<section
+ anchor="section_A5F58328-7286-4047-8827-3959B95844F7"
+ numbered="true"
+ removeInRFC="false"
+ toc="default">
+<name>Efficient Content Verification</name>
+<t>
+We now have a small fixed-size piece of metadata
+that can protect potentially huge files.
+The trade-off is that
+the verifier must reconstitute these trees
+during installation or on-demand.
+File systems or remote filesystem clients
+can store or cache reconstituted trees in:
+</t>
+<ul>
+<li>
+Volatile or non-volatile memory
+</li>
+<li>
+A secure database
+</li>
+<li>
+A private directory on a local filesystem
+</li>
+<li>
+A named attribute or stream associated with the file
+</li>
+</ul>
+<t>
+An easily accessible copy of a file's hash tree
+enables frequent verification of file content.
+Frequent verification protects that content
+against unwanted changes due to local storage or copying errors,
+malicious activity,
+or data retention issues.
+When verification is efficient, it can take place
+as often as during every file read operation.
+</t>
+<t>
+The current document's unique contribution is
+the use of an X.509 v3 certificate
+to encapsulate the representation of a hash tree.
+The purpose of encapsulation is to
+enable the hash tree metadata
+to be exchanged
+and
+recognized broadly
+in the Internet community.
+Therefore each certificate has to:
+</t>
+<ul>
+<li>
+Cryptographically protect the integrity of the hash tree metadata
+</li>
+<li>
+Bind the hash tree metadata to the identity of the file content's attestor
+</li>
+<li>
+Provide for a broadly supported standard set of cryptographic algorithms
+</li>
+<li>
+Represent the data in a commonly recognized format that is independent of storage media
+</li>
+</ul>
+</section>
+
+<section
+ anchor="section_3650CEDD-64BF-4192-93F9-C6F5DA277D85"
+ numbered="true"
+ removeInRFC="false"
+ toc="default">
+<name>Related Work</name>
+<t>
+Granted in 1982, US patent 4309569
+<xref target="USP" format="default" sectionFormat="of"/>
+covers the construction of a tree of digests.
+Initially, these "Merkle trees" helped
+improve the security of digital signatures.
+Later they were used in storage integrity applications such as
+<xref target="3" format="default" sectionFormat="of"/>.
+They have also found their way into other domains.
+<xref target="RFC6962" format="default" sectionFormat="of"/>,
+published in 2013, uses Merkle trees to manage log auditing, for example.
+</t>
+<t>
+A Tiger tree is a form of a hash tree
+often used by P2P protocols to verify a file's integrity
+while in transit.
+The Tree Hash EXchange format
+<xref target="4" format="default" sectionFormat="of"/>.
+enables the transmission of whole Tiger trees in an XML format.
+The current document proposes similar usage
+where a sidecar hash tree protects file content
+but reduces the integrity metadata's size.
+</t>
+</section>
+
+</section>
+
+<section
+ anchor="section_3430C86D-BB5E-46C3-98A8-1FF8BAADFD73"
+ numbered="true"
+ removeInRFC="false"
+ toc="default">
+<name>Requirements Language</name>
+<t>
+The key words "<bcp14>MUST</bcp14>", "<bcp14>MUST NOT</bcp14>",
+"<bcp14>REQUIRED</bcp14>", "<bcp14>SHALL</bcp14>",
+"<bcp14>SHALL NOT</bcp14>", "<bcp14>SHOULD</bcp14>",
+"<bcp14>SHOULD NOT</bcp14>",
+"<bcp14>RECOMMENDED</bcp14>", "<bcp14>NOT RECOMMENDED</bcp14>",
+"<bcp14>MAY</bcp14>", and "<bcp14>OPTIONAL</bcp14>"
+in this document are to be interpreted
+as described in BCP&nbsp;14
+<xref target="RFC2119" format="default" sectionFormat="of"/>
+<xref target="RFC8174" format="default" sectionFormat="of"/>
+when, and only when, they appear in all capitals, as shown here.
+</t>
+</section>
+
+<section
+ anchor="section_A5F4D999-8F23-4BF6-B715-FCC67A117C0E"
+ numbered="true"
+ removeInRFC="true"
+ toc="default">
+<name>Hash Tree Metadata</name>
+<t>
+Reconstituting a hash tree
+(as opposed to building a more generic directed graph of hashes)
+requires a basic set of metadata
+along with an understanding of how to use the metadata
+to reconstitute the hash tree:
+</t>
+<ul>
+<li>
+The algorithm used to compute the tree's digests
+</li>
+<li>
+The divergence factor (roughly defined as one for a hash list and two for binary hash trees)
+</li>
+<li>
+The tree height (from root to the lowest leaf node)
+</li>
+<li>
+The block size covered by each leaf node in the tree
+</li>
+<li>
+An optional salt value
+</li>
+</ul>
+<t>
+More research might be needed to cover recent innovations
+in hash tree construction.
+</t>
+<t>
+The digest algorithm used to construct the hash tree
+<bcp14>MUST</bcp14>
+match the digest algorithm used to sign the certificate.
+Thus if SHA-2 is used to construct the hash tree,
+the certificate signature is created with SHA-2.
+The verifier then uses SHA-2
+when validating the certificate signature
+and
+reconstituting the hash tree.
+The object identifiers for the supported algorithms
+and the methods for encoding public key materials
+(public key and parameters)
+are specified in
+<xref target="RFC3279" format="default" sectionFormat="of"/>,
+<xref target="RFC4055" format="default" sectionFormat="of"/>,
+and
+<xref target="RFC4491" format="default" sectionFormat="of"/>.
+</t>
+<t>
+The block size value of the tree is specified in octets.
+For example, if the block size is 4096,
+then each leaf node of the hash tree digests
+4096 octets of the protected file (aligned on 4096-octet boundaries).
+</t>
+<t>
+The internal nodes are digests
+constructed from the hashes of two adjacent child nodes up to the root node
+(further detail needed here).
+The tree's height is the distance,
+counted in nodes, from the root to the lowest leaf node.
+</t>
+<t>
+The leaf nodes are ordered (left to right)
+by the file offset of the block they protect.
+Thus, the left-most leaf node represents
+the first block in the file,
+and the right-most leaf node represents the final block in the file.
+</t> 
+<t>
+Some explanation of the salt value goes here.
+</t>
+<t>
+Further, when computing each digest,
+an extra byte might be prefixed to each hash value
+to reduce the possibility of a second-preimage attack
+<xref target="5" format="default" sectionFormat="of"/>.
+</t>
+</section>
+
+<section
+ anchor="section_93068597-4FD2-4D0D-9A45-28DC66D7BE55"
+ numbered="true"
+ removeInRFC="true"
+ toc="default">
+<name>File Provenance Certificates</name>
+X.509 certificates are specified in
+<xref target="X.509" format="default" sectionFormat="of"/>.
+The current document extends
+the Internet X.509 certificate profile specified in
+<xref target="RFC5280" format="default" sectionFormat="of"/>
+to represent file content protected by hash tree metadata.
+</t>
+<t>
+File provenance certificates are end-entity certificates.
+The certificate's signature
+identifies the attestor
+and
+cryptographically protects the hash tree metadata.
+</t>
+<t>
+The Subject field
+<bcp14>MUST</bcp14>
+be an empty sequence.
+The SubjectAltName list carries
+a filename
+and
+the root hash,
+encoded in several new otherName type-IDs.
+The current document requests allocation
+of these new type-IDs on the id-on arc,
+defined in
+<xref target="RFC7299" section="2" format="default" sectionFormat="of"/>.
+The following subsections describe
+how these new type-IDs are used.
+Each of these type-IDs
+<bcp14>MUST</bcp14>
+be present in the SubjectAltName list.
+</t>
+<t>
+The IANA Considerations section of the current document
+provides complete ASN.1 modules for these new type-IDs.
+</t>
+<t>
+RFC Editor: In the following subsections,
+please replace the letters II through MM
+once IANA has allocated these values.
+Furthermore, please remove this Editor's Note
+before this document is published.
+</t>
+
+<section
+ anchor="section_65C70510-8CF1-4AF0-B81F-60823306D448"
+ numbered="true"
+ removeInRFC="true"
+ toc="default">
+<name>Root Hash</name>
+<t>
+The root digest type-ID stores the digest
+that appears at the root of the represented Merkle tree.
+The digest appears as a hexadecimal integer.
+</t>
+
+<sourcecode name="" type="asn.1" markers="true">
+<![CDATA[
+id-on-treeRootDigest OBJECT IDENTIFIER ::= { id-on II } 
+rootDigestSyntax ::= HEXADECIMAL INTEGER
+]]>
+</sourcecode>
+
+</section>
+
+<section
+ anchor="section_2CD44351-F497-4FCB-81DA-9A722E0D5B12"
+ numbered="true"
+ removeInRFC="true"
+ toc="default">
+<name>Divergence Factor</name>
+<t>
+The tree divergence factor type-ID represents
+the maximum number of children nodes each node has
+in the represented Merkle tree.
+A value of two, for example,
+means each node (except the leaf nodes) has no more than two children.
+</t>
+
+<sourcecode name="" type="asn.1" markers="true">
+<![CDATA[
+id-on-treeDivergenceFactor OBJECT IDENTIFIER ::= { id-on JJ } 
+treeDivergenceFactorSyntax ::= INTEGER  (1..2)
+]]>
+</sourcecode>
+
+</section>
+
+<section
+ anchor="section_B5BABFB9-7E48-4305-BDB8-6E1D2DEACA4D"
+ numbered="true"
+ removeInRFC="true"
+ toc="default">
+<name>Tree Height</name>
+<t>
+The tree height type-ID stores
+the distance from the represented Merkle tree's root node
+to its lowest leaf node.
+A value of one, for example,
+means the tree has a single level at the root.
+</t>
+
+<sourcecode name="" type="asn.1" markers="true">
+<![CDATA[
+id-on-treeHeight OBJECT IDENTIFIER ::= { id-on KK } 
+treeHeightSyntax ::= INTEGER
+]]>
+</sourcecode>
+
+</section>
+
+<section
+ anchor="section_18B6CBBA-4E89-4583-8510-F86C5CAF5BD9"
+ numbered="true"
+ removeInRFC="true"
+ toc="default">
+<name>Block Size</name>
+<t>
+The block size type-ID contains
+the number of file content bytes
+represented by each digest (node) in the Merkle tree.
+A typical value is 4096,
+meaning each node in the tree contains
+a digest of up to 4096 bytes,
+starting on 4096-byte boundaries.
+</t>
+
+<sourcecode name="" type="asn.1" markers="true">
+<![CDATA[
+id-on-treeBlockSize OBJECT IDENTIFIER ::= { id-on LL } 
+treeBlockSizeSyntax ::= INTEGER
+]]>
+</sourcecode>
+
+</section>
+
+<section
+ anchor="section_8234C714-A91D-4FC4-A0B1-605FAA8E5732"
+ numbered="true"
+ removeInRFC="true"
+ toc="default">
+<name>Salt Value</name>
+<t>
+The tree salt value is
+a hexadecimal integer
+combined with the digest values
+in some way that I have to look up.
+If the tree salt value is zero,
+salting is not to be used
+when reconstituting the represented Merkle tree.
+</t>
+
+<sourcecode name="" type="asn.1" markers="true">
+<![CDATA[
+id-on-treeSalt OBJECT IDENTIFIER ::= { id-on MM } 
+treeSaltSyntax ::= HEXADECIMAL INTEGER
+]]>
+</sourcecode>
+
+</section>
+
+<section
+ anchor="section_141D5542-E0BF-4225-9F40-744E2B3F228F"
+ numbered="true"
+ removeInRFC="true"
+ toc="default">
+<name>Validating Certificates and their Signatures</name>
+<t>
+When validating a certificate containing hash tree metadata,
+validation
+<bcp14>MUST</bcp14>
+include the verification rules per
+<xref target="RFC5280" section="6" format="default" sectionFormat="of"/>.
+</t>
+<t>
+The validator reconstitutes a hash tree using
+the presented file content
+and
+the hash tree metadata in the certificate.
+If the root hash of the reconstituted hash tree
+does not match the value contained in the treeRootHash,
+then the validation fails.
+</t>
+</section>
+
+</section>
+
+<section
+ anchor="section_BDCA7484-61B5-4BF0-9480-A3E9E8EB3144"
+ numbered="true"
+ removeInRFC="true"
+ toc="default">
+<name>Implementation Status</name>
+<t>
+This section records the status of known implementations of the
+protocol defined by this specification at the time of posting of
+this Internet-Draft, and is based on a proposal described in
+<xref target="RFC7942" format="default" sectionFormat="of"/>.
+The description of implementations in this section is
+intended to assist the IETF in its decision processes in
+progressing drafts to RFCs.
+</t>
+<t>
+Please note that the listing of any individual implementation here
+does not imply endorsement by the IETF.
+Furthermore, no effort has been spent to verify the information
+presented here that was supplied by IETF contributors.
+This is not intended as, and must not be construed to be, a
+catalog of available implementations or their features.
+Readers are advised to note that other implementations may exist.
+</t>
+<t>
+There are no known implementations of the X.509 certificate extensions
+described in the current document.
+</t>
+
+</section>
+
+<section
+ anchor="section_42267A9A-CEA7-4E01-92DD-94225C3E3213"
+ numbered="true"
+ removeInRFC="false"
+ toc="default">
+<name>Security Considerations</name>
+
+<section
+ anchor="section_1698C709-2ACE-41A7-9E2A-BD6DDE71039A"
+ numbered="true"
+ removeInRFC="false"
+ toc="default">
+<name>X.509 Certificate Vulnerabilities</name>
+<t>
+The file content and hash tree can be unpacked
+and then resigned by someone who participates
+in the same web of trust as the original content creator.
+Verifiers should consult appropriate certificate revocation databases
+as part of validating attestor signatures to mitigate this form of attack.
+</t>
+</section>
+
+<section
+ anchor="section_56CC17F9-D269-4CC7-BB91-BE5E06DB275C"
+ numbered="true"
+ removeInRFC="false"
+ toc="default">
+<name>Hash Tree Collisions and Pre-Image Attacks</name>
+<t>
+A typical attack against digest algorithms is a collision attack.
+The usual mitigation for this form of attack is
+choosing a hash algorithm known to be strong.
+Therefore we here recommend the use of
+one of a set of hashes known to be uncompromised
+at the time of publication of this document.
+</t>
+<t>
+Hash trees are subject to a particular type of collision attack
+called a "second pre-image attack".
+Digest values in intermediate nodes in a hash tree
+are generated from lower nodes.
+Executing a collision attack to replace a subtree
+with content that hashes to the same value
+does not change the root hash value
+and is more manageable than replacing all of the content.
+This kind of attack can occur
+independently of the strength of the tree's hash algorithm.
+The tree height is included in the signed metadata to mitigate this form of attack.
+</t>
+</section>
+
+<section
+ anchor="section_2E0EDB96-8E0B-4640-8A82-D1990FECC785"
+ numbered="true"
+ removeInRFC="false"
+ toc="default">
+<name>File Content Vulnerabilities</name>
+<t>
+There are two broad categories of attacks
+on mechanisms that protect the integrity of file content:
+</t>
+<dl>
+<dt>
+Overt corruption:
+</dt>
+<dd>
+An attacker makes the file's content dubious or unusable
+(depending on the end system's security policies)
+by corrupting either the file's content
+or
+its protective metadata in a detectable manner.
+</dd>
+<dt>
+Silent corruption:
+</dt>
+<dd>
+An attacker alters the file's content and its protective metadata
+in synchrony such that any changes remain undetected.
+</dd>
+</dl>
+<t>
+The goal of the current document's mechanism is to turn
+as many instances of the latter as possible
+into the former,
+which are more likely to identify corrupted content before it is consumed.
+</t>
+</section>
+
+</section>
+
+<section
+ anchor="section_0DFF4BB4-C4D9-45C4-BDE6-25385DD4FC86"
+ numbered="true"
+ removeInRFC="false"
+ toc="default">
+<name>IANA Considerations</name>
+<t>
+RFC Editor: In the following subsections,
+please replace RFC-TBD with the RFC number assigned to this document,
+and
+please replace II through MM with the IANA numbers assigned to these new entries.
+Furthermore, please remove this Editor's Note
+before this document is published.
+</t>
+
+<section
+ anchor="section_04F87633-5C00-4D70-9A28-144CCF912923"
+ numbered="true"
+ removeInRFC="false"
+ toc="default">
+<name>Object Identifiers for Hash Tree Metadata</name>
+<t>
+Following the "Specification Required" policy as defined in
+<xref target="RFC5226" section="4.1" format="default" sectionFormat="of"/>,
+the author of the current document requests
+several new type-ID OIDs on the id-on arc defined in
+<xref target="RFC7299" section="2" format="default" sectionFormat="of"/>.
+The registry for this arc is maintained at the following URL:
+<eref
+ target=https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-1.3.6.1.5.5.7.8">
+</t>
+<t>
+Following
+<xref target="RFC5280" format="default" sectionFormat="of"/>,
+the current document requests newly-defined objects in the following subsections
+using 1988 ASN.1 notation.
+</t>
+
+<sourcecode name="" type="asn.1" markers="true">
+<![CDATA[
+id-pkix OBJECT IDENTIFIER ::=
+             { iso(1) identified-organization(3) dod(6) internet(1) 
+                        security(5) mechanisms(5) pkix(7) }
+id-on   OBJECT IDENTIFIER ::= { id-pkix 8 }
+
+id-on-treeRootDigest OBJECT IDENTIFIER ::= { id-on II } 
+rootDigestSyntax ::= HEXADECIMAL INTEGER
+id-on-treeDivergenceFactor OBJECT IDENTIFIER ::= { id-on JJ } 
+treeDivergenceFactorSyntax ::= INTEGER  (1..2)
+id-on-treeHeight OBJECT IDENTIFIER ::= { id-on KK } 
+treeHeightSyntax ::= INTEGER
+id-on-treeBlockSize OBJECT IDENTIFIER ::= { id-on LL } 
+treeBlockSizeSyntax ::= INTEGER
+id-on-treeSalt OBJECT IDENTIFIER ::= { id-on MM } 
+treeSaltSyntax ::= HEXADECIMAL INTEGER
+]]>
+</sourcecode>
+
+<t>
+IANA should use the current document (RFC-TBD)
+as the reference for these new entries. 
+</t>
+
+</section>
+
+</middle>
+
+<back>
+
+<references>
+<name>References</name>
+
+<references>
+<name>Normative References</name>
+
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.3279.xml"/>
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4055.xml"/>
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4491.xml"/>
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.5226.xml"/>
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.5280.xml"/>
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7299.xml"/>
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7942.xml"/>
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
+
+<reference anchor="X.509">
+<front>
+<title>
+ITU-T X.509 - Information technology -
+The Directory: Public-key and attribute certificate frameworks.
+</title>
+<seriesInfo name="ISO/IEC" value="9594-8"/>
+<seriesInfo name="CCITT Recommendation" value="X.509"/>
+<author>
+<organization showOnFrontPage="true">
+International Telephone and Telegraph Consultative Committee
+</organization>
+</author>
+<date month="October" year="2019"/>
+<abstract>
+<t>
+Recommendation ITU-T X.509 | ISO/IEC 9594-8 defines frameworks for public-key infrastructure (PKI) and privilege management infrastructure (PMI).
+It introduces the basic concept of asymmetric cryptographic techniques.
+It specifies the following data types: public-key certificate, attribute certificate, certificate revocation list (CRL) and attribute certificate revocation list (ACRL).
+It also defines several certificates and CRL extensions, and it defines directory schema information allowing PKI and PMI related data to be stored in a directory.
+In addition, it defines entity types, such as certification authority (CA), attribute authority (AA), relying party, privilege verifier, trust broker and trust anchor.
+It specifies the principles for certificate validation, validation path, certificate policy, etc.
+It also includes a specification for authorization validation lists that allow for fast validation and restrictions on communications.
+</t>
+</abstract>
+</front>
+</reference>
+
+</references>
+
+<references>
+<name>Informative References</name>
+
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.draft-thaler-rats-architecture-01.xml"/>
+
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.6962.xml"/>
+
+<reference
+ anchor="Merkle82">
+<front>
+<title>
+Method of providing digital signatures
+</title>
+<author initials="R." surname="Merkle" fullname="Ralph Merkle">
+<organization showOnFrontPage="true">
+</organization>
+</author>
+<date month="January" year="1982"/>
+</front>
+<seriesInfo name="US Patent Office" value="4309569"/>
+</reference>
+
+<reference
+ anchor="Merkle88">
+<front>
+<title>
+A Digital Signature Based on a Conventional Encryption Function
+</title>
+<author initials="R." surname="Merkle" fullname="Ralph C. Merkle">
+<organization showOnFrontPage="true">
+</organization>
+</author>
+<date year="1988">
+</front>
+<seriesInfo name="Advances in Cryptography" value="CRYPTO '87"/>
+<seriesInfo name="Lecture Notes in Computer Science" value="293"/>
+<seriesInfo name="pp." value="369-378"/>
+<seriesInfo name="DOI" value="10.1007/3-540-48184-2_32"/>
+<seriesInfo name="ISBN" value="978-3-540-18796-7"/>
+</reference>
+
+<reference
+ anchor="Mykletun06">
+<front>
+<title>
+Providing Authentication and Integrity in Outsourced Databases using Merkle Hash Tree's
+</title>
+<author initials="E." surname="Mykletun" fullname="Einar Mykletun">
+<organization showOnFrontPage="true">
+University of California Irvine
+</organization>
+</author>
+<author initials="M." surname="Maithili" fullname="Maithili Narasimha">
+<organization showOnFrontPage="true">
+University of California Irvine
+</organization>
+</author>
+<author initials="G." surname="Tsudik" fullname="Gene Tsudik">
+<organization showOnFrontPage="true">
+University of California Irvine
+</organization>
+</author>
+<date month="May" year="2006"/>
+<abstract>
+In the Outsourced Database (ODB) model, entities outsource their data
+management needs to a third-party service provider. Such a service
+provider offers mechanisms for its clients to create, store, update,
+and access (query) their databases. This work provides mechanisms to
+ensure data integrity and authenticity for outsourced databases.
+Specifically, this article provides mechanisms that assure the
+querier that the query results have not been tampered with and are
+authentic (with respect to the actual data owner). It investigates
+both the security and efficiency aspects of the problem and constructs
+several secure and practical schemes that facilitate the integrity
+and authenticity of query replies while incurring low computational
+and communication costs.
+</abstract>
+</front>
+<seriesInfo name="ACM" value="Transactions on Storage"/>
+<seriesInfo name="DOI" value="10.1145/1149976.1149977"/>
+</reference>
+
+<reference
+ anchor="THEX"
+ target="http://www.nuke24.net/docs/2003/draft-jchapweske-thex-02.html">
+<front>
+<title>
+</title>
+<author initials="J." surname="Chapweske" fullname="Justin Chapweske">
+<organization showOnFrontPage="true">
+Onion Networks, Inc.
+</organization>
+</author>
+<author initials="G." surname="Mohr" fullname="Gordon Mohr">
+<organization showOnFrontPage="true">
+Bitzi, Inc.
+</organization>
+<date day="4" month="March" year="2003"/>
+<abstract>
+This memo presents the Tree Hash Exchange (THEX) format, for exchanging Merkle Hash Trees built up from the subrange hashes of discrete digital files. Such tree hash data structures assist in file integrity verification, allowing arbitrary subranges of bytes to be verified before the entire file has been received.
+</abstract>
+</front>
+</reference>
+
+</references>
+
+<section
+ anchor="section_70A1D0C9-D77E-4053-9A85-4BB04B01D036"
+ numbered="false"
+ removeInRFC="false"
+ toc="default">
+<name>Acknowledgments</name>
+<t>
+The editor is grateful to
+<contact fullname="Bill Baker"/>,
+<contact fullname="Eric Biggers"/>,
+<contact fullname="James Bottomley"/>,
+<contact fullname="Russ Housley"/>,
+<contact fullname="Benjamin Kaduk"/>,
+<contact fullname="Rick Macklem"/>,
+<contact fullname="Greg Marsden"/>,
+<contact fullname="Paul Moore"/>,
+<contact fullname="Martin Thomson"/>,
+and
+<contact fullname="Mimi Zohar"/>
+for their input and support.
+</t>
+<t>
+Finally, special thanks to
+Transport Area Directors
+<contact fullname="Martin Duke"/>
+and
+<contact fullname="Zaheduzzaman Sarker"/>,
+NFSV4 Working Group Chairs
+<contact fullname="David Noveck"/>
+and
+<contact fullname="Brian Pawlowski"/>,
+and
+NFSV4 Working Group Secretary
+<contact fullname="Thomas Haynes"/>
+for their guidance and oversight.
+</t>
+</section>
+
+</back>
+
+</rfc>
