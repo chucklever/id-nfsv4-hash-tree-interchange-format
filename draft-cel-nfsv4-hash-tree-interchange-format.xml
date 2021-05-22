@@ -102,7 +102,7 @@ Linear hashing is a common technique for protecting the integrity of data.
 A fixed-size hash, or digest, is computed over the bytes in a data set
 using a deterministic and collision-resistant algorithm.
 An example of such an algorithm is
-<xref target="SHA256" format="default" sectionFormat="of"/>.
+<xref target="FIPS.180-4" format="default" sectionFormat="of"/>.
 </t>
 <t>
 Filesystem designers often employ this technique
@@ -143,7 +143,7 @@ sometimes quickly.
 </t>
 <t>
 To address this shortcoming, some have turned to hash trees
-<xref target="HT" format="default" sectionFormat="of"/>.
+<xref target="Merkle88" format="default" sectionFormat="of"/>.
 A hash tree leaf node contains the linear hash of a portion
 of the protected content.
 Interior nodes in a hash tree contain hashes of the nodes below them,
@@ -292,12 +292,12 @@ Represent the data in a commonly recognized format that is independent of storag
 <name>Related Work</name>
 <t>
 Granted in 1982, US patent 4309569
-<xref target="USP" format="default" sectionFormat="of"/>
+<xref target="Merkle82" format="default" sectionFormat="of"/>
 covers the construction of a tree of digests.
 Initially, these "Merkle trees" helped
 improve the security of digital signatures.
 Later they were used in storage integrity applications such as
-<xref target="3" format="default" sectionFormat="of"/>.
+<xref target="Mykletun06" format="default" sectionFormat="of"/>.
 They have also found their way into other domains.
 <xref target="RFC6962" format="default" sectionFormat="of"/>,
 published in 2013, uses Merkle trees to manage log auditing, for example.
@@ -307,7 +307,7 @@ A Tiger tree is a form of a hash tree
 often used by P2P protocols to verify a file's integrity
 while in transit.
 The Tree Hash EXchange format
-<xref target="4" format="default" sectionFormat="of"/>.
+<xref target="THEX03" format="default" sectionFormat="of"/>.
 enables the transmission of whole Tiger trees in an XML format.
 The current document proposes similar usage
 where a sidecar hash tree protects file content
@@ -416,9 +416,8 @@ Some explanation of the salt value goes here.
 </t>
 <t>
 Further, when computing each digest,
-an extra byte might be prefixed to each hash value
-to reduce the possibility of a second-preimage attack
-<xref target="5" format="default" sectionFormat="of"/>.
+an extra byte might be prefixed to the pre-digested content
+to reduce the possibility of a second-preimage attack.
 </t>
 </section>
 
@@ -428,6 +427,7 @@ to reduce the possibility of a second-preimage attack
  removeInRFC="true"
  toc="default">
 <name>File Provenance Certificates</name>
+<t>
 X.509 certificates are specified in
 <xref target="X.509" format="default" sectionFormat="of"/>.
 The current document extends
@@ -679,9 +679,14 @@ as part of validating attestor signatures to mitigate this form of attack.
 A typical attack against digest algorithms is a collision attack.
 The usual mitigation for this form of attack is
 choosing a hash algorithm known to be strong.
-Therefore we here recommend the use of
-one of a set of hashes known to be uncompromised
-at the time of publication of this document.
+Implementers
+<bcp14>SHOULD</bcp14>
+choose amongst digest algorithms that are
+known to be resistant to pre-image attacks.
+See
+<xref target="RFC4270" format="default" sectionFormat="of"/>
+for a discussion of attacks on
+digest algorithms typically used in Internet protocols.
 </t>
 <t>
 Hash trees are subject to a particular type of collision attack
@@ -691,7 +696,7 @@ are generated from lower nodes.
 Executing a collision attack to replace a subtree
 with content that hashes to the same value
 does not change the root hash value
-and is more manageable than replacing all of the content.
+and is more manageable than replacing all of a file's content.
 This kind of attack can occur
 independently of the strength of the tree's hash algorithm.
 The tree height is included in the signed metadata to mitigate this form of attack.
@@ -766,7 +771,7 @@ several new type-ID OIDs on the id-on arc defined in
 <xref target="RFC7299" section="2" format="default" sectionFormat="of"/>.
 The registry for this arc is maintained at the following URL:
 <eref
- target=https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-1.3.6.1.5.5.7.8">
+ target="https://www.iana.org/assignments/smi-numbers/smi-numbers.xhtml#smi-numbers-1.3.6.1.5.5.7.8"/>
 </t>
 <t>
 Following
@@ -799,6 +804,7 @@ treeSaltSyntax ::= HEXADECIMAL INTEGER
 IANA should use the current document (RFC-TBD)
 as the reference for these new entries. 
 </t>
+</section>
 
 </section>
 
@@ -821,6 +827,9 @@ as the reference for these new entries.
 <xi:include
  xmlns:xi="http://www.w3.org/2001/XInclude"
  href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4055.xml"/>
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4270.xml"/>
 <xi:include
  xmlns:xi="http://www.w3.org/2001/XInclude"
  href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4491.xml"/>
@@ -882,6 +891,24 @@ It also includes a specification for authorization validation lists that allow f
  href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.6962.xml"/>
 
 <reference
+ anchor="FIPS.180-4">
+<front>
+<title>
+Secure Hash Standard,
+Federal Information Processing Standards Publication FIPS PUB 180-4
+</title>
+<author>
+<organization>
+National Institute of Standards and Technology
+</organization>
+</author>
+<date month="August" year="2015"/>
+</front>
+<seriesInfo name="FIPS PUB" value="180-4"/>
+<seriesInfo name="DOI" value="10.6028/NIST.FIPS.180-4"/>
+</reference>
+
+<reference
  anchor="Merkle82">
 <front>
 <title>
@@ -906,7 +933,7 @@ A Digital Signature Based on a Conventional Encryption Function
 <organization showOnFrontPage="true">
 </organization>
 </author>
-<date year="1988">
+<date year="1988"/>
 </front>
 <seriesInfo name="Advances in Cryptography" value="CRYPTO '87"/>
 <seriesInfo name="Lecture Notes in Computer Science" value="293"/>
@@ -938,6 +965,7 @@ University of California Irvine
 </author>
 <date month="May" year="2006"/>
 <abstract>
+<t>
 In the Outsourced Database (ODB) model, entities outsource their data
 management needs to a third-party service provider. Such a service
 provider offers mechanisms for its clients to create, store, update,
@@ -950,6 +978,7 @@ both the security and efficiency aspects of the problem and constructs
 several secure and practical schemes that facilitate the integrity
 and authenticity of query replies while incurring low computational
 and communication costs.
+</t>
 </abstract>
 </front>
 <seriesInfo name="ACM" value="Transactions on Storage"/>
@@ -957,10 +986,11 @@ and communication costs.
 </reference>
 
 <reference
- anchor="THEX"
+ anchor="THEX03"
  target="http://www.nuke24.net/docs/2003/draft-jchapweske-thex-02.html">
 <front>
 <title>
+Tree Hash EXchange format (THEX)
 </title>
 <author initials="J." surname="Chapweske" fullname="Justin Chapweske">
 <organization showOnFrontPage="true">
@@ -971,12 +1001,17 @@ Onion Networks, Inc.
 <organization showOnFrontPage="true">
 Bitzi, Inc.
 </organization>
+</author>
 <date day="4" month="March" year="2003"/>
 <abstract>
+<t>
 This memo presents the Tree Hash Exchange (THEX) format, for exchanging Merkle Hash Trees built up from the subrange hashes of discrete digital files. Such tree hash data structures assist in file integrity verification, allowing arbitrary subranges of bytes to be verified before the entire file has been received.
+</t>
 </abstract>
 </front>
 </reference>
+
+</references>
 
 </references>
 
