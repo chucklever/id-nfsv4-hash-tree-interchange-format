@@ -884,10 +884,6 @@ It also includes a specification for authorization validation lists that allow f
 
 <xi:include
  xmlns:xi="http://www.w3.org/2001/XInclude"
- href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.draft-thaler-rats-architecture-01.xml"/>
-
-<xi:include
- xmlns:xi="http://www.w3.org/2001/XInclude"
  href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.6962.xml"/>
 
 <reference
