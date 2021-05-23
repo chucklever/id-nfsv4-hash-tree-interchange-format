@@ -55,7 +55,7 @@ and
 storing
 an abbreviated form of a cryptographically signed hash tree.
 Receivers use this representation
-to reconstitute a hash tree
+to reconstitute the hash tree
 and
 verify the integrity of file content protected by that tree.
 </t>
@@ -112,18 +112,18 @@ For instance, to protect an individual file's integrity,
 the filesystem computes a digest
 from the beginning of its content to its end.
 The filesystem then stores that digest along with the file content.
-The integrity of that digest is further protected
+The integrity of that digest can be further protected
 by cryptographically signing it.
-The filesystem recomputes a digest when the file is retrieved
+The filesystem recomputes the digest when the file is retrieved
 and compares
-the locally computed digest
+the locally-computed digest
 with
 the saved digest
 to verify the file content.
 </t>
 <t>
-Linear hashing has proven to be an inadequate fit
-with the way filesystems have to manage file content.
+Over time, linear hashing has proven to be an inadequate fit
+with the way filesystems manage file content.
 A content verifier must read the entire file to validate its digest.
 Reading whole files is not onerous for small files,
 but reading a large file every time
@@ -133,12 +133,12 @@ its digest needs verification quickly becomes costly.
 Filesystems read files from persistent storage
 in small pieces (blocks) on demand
 to manage large files efficiently.
-When memory is short, these blocks might be evicted
-and then read again when needed later.
+When memory is short, the system evicts these data blocks
+and then reads them again when needed later.
 There is no physical guarantee that
 a subsequent read of a particular block will
 give the same result as an earlier one.
-Thus a file's digest verification becomes stale,
+Thus the initial verification of a file's becomes stale,
 sometimes quickly.
 </t>
 <t>
@@ -155,8 +155,7 @@ content protected by that node and its parents in the hash tree.
 Hash trees present a new challenge, however.
 Even when signed, a single linear hash is the same size
 no matter how much content it protects.
-A hash tree, however, is not a fixed-size piece of metadata.
-Its size increases logarithmically with
+The size of a hash tree, however, increases logarithmically with
 the size of the content it protects.
 </t>
 <t>
@@ -170,10 +169,11 @@ Backup mechanisms such as tar or rsync might be unable
 to handle variably-sized metadata per file.
 </t>
 <t>
-We can readily extend network file storage protocols
+Moreover, we can readily extend network file storage protocols
 to exchange a hash tree associated with every file.
-However, file servers and the ecosystems where they run
-must also be updated to manage and store this metadata.
+However, to support such extensions,
+file servers and the ecosystems where they run
+must be updated to manage and store this metadata.
 Thus it is not merely an issue of enriching a file storage protocol
 to handle a new metadata type.
 </t>
@@ -188,11 +188,11 @@ to handle a new metadata type.
 The root hash of a hash tree is itself
 a fixed-size piece of metadata
 similar to a linear hash.
-The only disadvantage is that an verifier must
+The only disadvantage is that a verifier must
 reconstitute the hash tree using the root hash
 and the file content.
-If the verifier caches each tree on local trusted storage,
-that is nearly as good as storing the whole tree.
+However, if the verifier caches each tree on local trusted storage,
+that is as good as storing the whole tree.
 The verifier can then use the locally cached tree
 to validate portions of the file it protects
 without reading each file repeatedly
@@ -201,11 +201,11 @@ from remote or untrusted durable storage.
 <t>
 To further insulate a root hash from unwanted change,
 an attestor can protect it with a cryptographic signature.
-This cryptographic protection then covers
+This cryptographic protection then additionally covers
 the entire hash tree and the file content it protects.
 </t>
 <t>
-Such cryptographic protection is
+This integrity protection is
 independent of the file's storage format
 and
 its underlying durable media.
@@ -213,7 +213,7 @@ The file (and the root hash that protects it) can be copied,
 transmitted over networks,
 or
 backed up and restored
-while its protection is maintained end-to-end.
+while it remains protected end-to-end.
 </t>
 </section>
 
@@ -227,7 +227,7 @@ while its protection is maintained end-to-end.
 We now have a small fixed-size piece of metadata
 that can protect potentially huge files.
 The trade-off is that
-the verifier must reconstitute these trees
+the verifier must reconstitute the hash tree
 during installation or on-demand.
 File systems or remote filesystem clients
 can store or cache reconstituted trees in:
@@ -273,13 +273,13 @@ Therefore each certificate has to:
 Cryptographically protect the integrity of the hash tree metadata
 </li>
 <li>
-Bind the hash tree metadata to the identity of the file content's attestor
+Bind the hash tree metadata to the authenticated identity of the file content's attestor
 </li>
 <li>
-Provide for a broadly supported standard set of cryptographic algorithms
+Provide for a broadly-supported standard set of cryptographic algorithms
 </li>
 <li>
-Represent the data in a commonly recognized format that is independent of storage media
+Represent the hash tree data in a commonly recognized format that is independent of storage media
 </li>
 </ul>
 </section>
@@ -347,8 +347,10 @@ when, and only when, they appear in all capitals, as shown here.
 <t>
 Reconstituting a hash tree
 (as opposed to building a more generic directed graph of hashes)
-requires a basic set of metadata
-along with an understanding of how to use the metadata
+requires
+the protected content,
+a basic set of metadata,
+and an understanding of how to use the metadata
 to reconstitute the hash tree:
 </t>
 <ul>
@@ -356,7 +358,7 @@ to reconstitute the hash tree:
 The algorithm used to compute the tree's digests
 </li>
 <li>
-The divergence factor (roughly defined as one for a hash list and two for binary hash trees)
+The divergence factor (defined as one for a hash list and two for binary hash trees)
 </li>
 <li>
 The tree height (from root to the lowest leaf node)
@@ -370,7 +372,9 @@ An optional salt value
 </ul>
 <t>
 More research might be needed to cover recent innovations
-in hash tree construction.
+in hash tree construction;
+in particular, the use of prefixes to prevent
+second pre-image attacks.
 </t>
 <t>
 The digest algorithm used to construct the hash tree
