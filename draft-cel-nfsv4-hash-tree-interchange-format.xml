@@ -341,7 +341,7 @@ when, and only when, they appear in all capitals, as shown here.
 <section
  anchor="section_A5F4D999-8F23-4BF6-B715-FCC67A117C0E"
  numbered="true"
- removeInRFC="true"
+ removeInRFC="false"
  toc="default">
 <name>Hash Tree Metadata</name>
 <t>
@@ -428,7 +428,7 @@ to reduce the possibility of a second-preimage attack.
 <section
  anchor="section_93068597-4FD2-4D0D-9A45-28DC66D7BE55"
  numbered="true"
- removeInRFC="true"
+ removeInRFC="false"
  toc="default">
 <name>File Provenance Certificates</name>
 <t>
@@ -480,7 +480,7 @@ before this document is published.
 <section
  anchor="section_65C70510-8CF1-4AF0-B81F-60823306D448"
  numbered="true"
- removeInRFC="true"
+ removeInRFC="false"
  toc="default">
 <name>Root Hash</name>
 <t>
@@ -501,7 +501,7 @@ rootDigestSyntax ::= HEXADECIMAL INTEGER
 <section
  anchor="section_2CD44351-F497-4FCB-81DA-9A722E0D5B12"
  numbered="true"
- removeInRFC="true"
+ removeInRFC="false"
  toc="default">
 <name>Divergence Factor</name>
 <t>
@@ -524,7 +524,7 @@ treeDivergenceFactorSyntax ::= INTEGER  (1..2)
 <section
  anchor="section_B5BABFB9-7E48-4305-BDB8-6E1D2DEACA4D"
  numbered="true"
- removeInRFC="true"
+ removeInRFC="false"
  toc="default">
 <name>Tree Height</name>
 <t>
@@ -547,7 +547,7 @@ treeHeightSyntax ::= INTEGER
 <section
  anchor="section_18B6CBBA-4E89-4583-8510-F86C5CAF5BD9"
  numbered="true"
- removeInRFC="true"
+ removeInRFC="false"
  toc="default">
 <name>Block Size</name>
 <t>
@@ -572,7 +572,7 @@ treeBlockSizeSyntax ::= INTEGER
 <section
  anchor="section_8234C714-A91D-4FC4-A0B1-605FAA8E5732"
  numbered="true"
- removeInRFC="true"
+ removeInRFC="false"
  toc="default">
 <name>Salt Value</name>
 <t>
@@ -597,7 +597,7 @@ treeSaltSyntax ::= HEXADECIMAL INTEGER
 <section
  anchor="section_141D5542-E0BF-4225-9F40-744E2B3F228F"
  numbered="true"
- removeInRFC="true"
+ removeInRFC="false"
  toc="default">
 <name>Validating Certificates and their Signatures</name>
 <t>
