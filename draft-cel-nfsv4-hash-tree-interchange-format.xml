@@ -832,9 +832,6 @@ as the reference for these new entries.
  href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4055.xml"/>
 <xi:include
  xmlns:xi="http://www.w3.org/2001/XInclude"
- href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4270.xml"/>
-<xi:include
- xmlns:xi="http://www.w3.org/2001/XInclude"
  href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4491.xml"/>
 <xi:include
  xmlns:xi="http://www.w3.org/2001/XInclude"
@@ -885,6 +882,9 @@ It also includes a specification for authorization validation lists that allow f
 <references>
 <name>Informative References</name>
 
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4270.xml"/>
 <xi:include
  xmlns:xi="http://www.w3.org/2001/XInclude"
  href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.6962.xml"/>
