@@ -768,7 +768,7 @@ before this document is published.
 <name>Object Identifiers for Hash Tree Metadata</name>
 <t>
 Following the "Specification Required" policy as defined in
-<xref target="RFC5226" section="4.1" format="default" sectionFormat="of"/>,
+<xref target="RFC8126" section="4.6" format="default" sectionFormat="of"/>,
 the author of the current document requests
 several new type-ID OIDs on the id-on arc defined in
 <xref target="RFC7299" section="2" format="default" sectionFormat="of"/>.
@@ -835,13 +835,13 @@ as the reference for these new entries.
  href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4491.xml"/>
 <xi:include
  xmlns:xi="http://www.w3.org/2001/XInclude"
- href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.5226.xml"/>
-<xi:include
- xmlns:xi="http://www.w3.org/2001/XInclude"
  href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.5280.xml"/>
 <xi:include
  xmlns:xi="http://www.w3.org/2001/XInclude"
  href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7942.xml"/>
+<xi:include
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8126.xml"/>
 <xi:include
  xmlns:xi="http://www.w3.org/2001/XInclude"
  href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
