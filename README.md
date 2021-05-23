@@ -1,6 +1,7 @@
 # 
 
-This is the working area for the individual Internet-Draft, "".
+This is the working area for the individual Internet-Draft,
+"Attestation of File Content using an X.509 Certificate".
 
 * [Editor's Copy](https://chucklever.github.io/id-nfsv4-hash-tree-interchange-format/#go.draft-cel-nfsv4-hash-tree-interchange-format.html)
 * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-cel-nfsv4-hash-tree-interchange-format)
