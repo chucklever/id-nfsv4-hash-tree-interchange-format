@@ -66,8 +66,7 @@ and
 protects
 the hash tree metadata and provides cryptographic provenance.
 Therefore this document updates
-the Internet X.509 certificate profile specified in
-<xref target="RFC5280" format="default" sectionFormat="of"/>.
+the Internet X.509 certificate profile specified in RFC 5280.
 </t>
 </abstract>
 
