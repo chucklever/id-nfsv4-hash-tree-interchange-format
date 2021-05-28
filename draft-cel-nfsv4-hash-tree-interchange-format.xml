@@ -413,7 +413,7 @@ by the file offset of the block they protect.
 Thus, the left-most leaf node represents
 the first block in the file,
 and the right-most leaf node represents the final block in the file.
-</t> 
+</t>
 <t>
 Some explanation of the salt value goes here.
 </t>
@@ -430,6 +430,13 @@ to reduce the possibility of a second-preimage attack.
  removeInRFC="false"
  toc="default">
 <name>File Provenance Certificates</name>
+<t>
+RFC Editor: In the following subsections,
+please replace the letters II
+once IANA has allocated this value.
+Furthermore, please remove this Editor's Note
+before this document is published.
+</t>
 <t>
 X.509 certificates are specified in
 <xref target="X.509" format="default" sectionFormat="of"/>.
@@ -453,28 +460,31 @@ The SubjectAltName list carries
 a filename
 and
 the root hash,
-encoded in several new otherName type-IDs.
+encoded in a new otherName type-ID, shown below.
 The current document requests allocation
-of these new type-IDs on the id-on arc,
+of this new type-ID on the id-on arc,
 defined in
 <xref target="RFC7299" section="2" format="default" sectionFormat="of"/>.
 The following subsections describe
-how these new type-IDs are used.
-Each of these type-IDs
-<bcp14>MUST</bcp14>
-be present in the SubjectAltName list.
+how the fields in this new type-ID are used.
 </t>
-<t>
-The IANA Considerations section of the current document
-provides complete ASN.1 modules for these new type-IDs.
-</t>
-<t>
-RFC Editor: In the following subsections,
-please replace the letters II through MM
-once IANA has allocated these values.
-Furthermore, please remove this Editor's Note
-before this document is published.
-</t>
+
+<sourcecode name="" type="asn.1" markers="true">
+<![CDATA[
+  id-pkix OBJECT IDENTIFIER ::=
+             { iso(1) identified-organization(3) dod(6) internet(1)
+                        security(5) mechanisms(5) pkix(7) }
+  id-on OBJECT IDENTIFIER ::= { id-pkix 8 }
+  id-on-fileContentAttestation OBJECT IDENTIFIER ::= { id-on II }
+  FileContentAttestation ::= SEQUENCE {
+     treeRootDigest OCTET STRING,
+     treeDivergenceFactor INTEGER  (1..2),
+     treeHeight INTEGER,
+     treeBlockSize INTEGER,
+     treeSaltValue OCTET STRING
+  }
+]]>
+</sourcecode>
 
 <section
  anchor="section_65C70510-8CF1-4AF0-B81F-60823306D448"
@@ -483,18 +493,10 @@ before this document is published.
  toc="default">
 <name>Root Hash</name>
 <t>
-The root digest type-ID stores the digest
+The root digest field stores the digest
 that appears at the root of the represented Merkle tree.
 The digest appears as a hexadecimal integer.
 </t>
-
-<sourcecode name="" type="asn.1" markers="true">
-<![CDATA[
-id-on-treeRootDigest OBJECT IDENTIFIER ::= { id-on II } 
-rootDigestSyntax ::= HEXADECIMAL INTEGER
-]]>
-</sourcecode>
-
 </section>
 
 <section
@@ -504,20 +506,12 @@ rootDigestSyntax ::= HEXADECIMAL INTEGER
  toc="default">
 <name>Divergence Factor</name>
 <t>
-The tree divergence factor type-ID represents
+The value in the tree divergence factor field represents
 the maximum number of children nodes each node has
 in the represented Merkle tree.
 A value of two, for example,
 means each node (except the leaf nodes) has no more than two children.
 </t>
-
-<sourcecode name="" type="asn.1" markers="true">
-<![CDATA[
-id-on-treeDivergenceFactor OBJECT IDENTIFIER ::= { id-on JJ } 
-treeDivergenceFactorSyntax ::= INTEGER  (1..2)
-]]>
-</sourcecode>
-
 </section>
 
 <section
@@ -527,20 +521,12 @@ treeDivergenceFactorSyntax ::= INTEGER  (1..2)
  toc="default">
 <name>Tree Height</name>
 <t>
-The tree height type-ID stores
+The tree height field stores
 the distance from the represented Merkle tree's root node
 to its lowest leaf node.
 A value of one, for example,
 means the tree has a single level at the root.
 </t>
-
-<sourcecode name="" type="asn.1" markers="true">
-<![CDATA[
-id-on-treeHeight OBJECT IDENTIFIER ::= { id-on KK } 
-treeHeightSyntax ::= INTEGER
-]]>
-</sourcecode>
-
 </section>
 
 <section
@@ -550,7 +536,7 @@ treeHeightSyntax ::= INTEGER
  toc="default">
 <name>Block Size</name>
 <t>
-The block size type-ID contains
+The block size field contains
 the number of file content bytes
 represented by each digest (node) in the Merkle tree.
 A typical value is 4096,
@@ -558,14 +544,6 @@ meaning each node in the tree contains
 a digest of up to 4096 bytes,
 starting on 4096-byte boundaries.
 </t>
-
-<sourcecode name="" type="asn.1" markers="true">
-<![CDATA[
-id-on-treeBlockSize OBJECT IDENTIFIER ::= { id-on LL } 
-treeBlockSizeSyntax ::= INTEGER
-]]>
-</sourcecode>
-
 </section>
 
 <section
@@ -583,14 +561,6 @@ If the tree salt value is zero,
 salting is not to be used
 when reconstituting the represented Merkle tree.
 </t>
-
-<sourcecode name="" type="asn.1" markers="true">
-<![CDATA[
-id-on-treeSalt OBJECT IDENTIFIER ::= { id-on MM } 
-treeSaltSyntax ::= HEXADECIMAL INTEGER
-]]>
-</sourcecode>
-
 </section>
 
 <section
@@ -755,7 +725,7 @@ which are more likely to identify corrupted content before it is consumed.
 RFC Editor: In the following subsections,
 please replace RFC-TBD with the RFC number assigned to this document,
 and
-please replace II through MM with the IANA numbers assigned to these new entries.
+please replace II with the number assigned to this new type-ID.
 Furthermore, please remove this Editor's Note
 before this document is published.
 </t>
@@ -785,27 +755,17 @@ using 1988 ASN.1 notation.
 
 <sourcecode name="" type="asn.1" markers="true">
 <![CDATA[
-id-pkix OBJECT IDENTIFIER ::=
-             { iso(1) identified-organization(3) dod(6) internet(1) 
+  id-pkix OBJECT IDENTIFIER ::=
+             { iso(1) identified-organization(3) dod(6) internet(1)
                         security(5) mechanisms(5) pkix(7) }
-id-on   OBJECT IDENTIFIER ::= { id-pkix 8 }
-
-id-on-treeRootDigest OBJECT IDENTIFIER ::= { id-on II } 
-rootDigestSyntax ::= HEXADECIMAL INTEGER
-id-on-treeDivergenceFactor OBJECT IDENTIFIER ::= { id-on JJ } 
-treeDivergenceFactorSyntax ::= INTEGER  (1..2)
-id-on-treeHeight OBJECT IDENTIFIER ::= { id-on KK } 
-treeHeightSyntax ::= INTEGER
-id-on-treeBlockSize OBJECT IDENTIFIER ::= { id-on LL } 
-treeBlockSizeSyntax ::= INTEGER
-id-on-treeSalt OBJECT IDENTIFIER ::= { id-on MM } 
-treeSaltSyntax ::= HEXADECIMAL INTEGER
+  id-on OBJECT IDENTIFIER ::= { id-pkix 8 }
+  id-on-fileContentAttestation OBJECT IDENTIFIER ::= { id-on II }
 ]]>
 </sourcecode>
 
 <t>
 IANA should use the current document (RFC-TBD)
-as the reference for these new entries. 
+as the reference for these new entries.
 </t>
 </section>
 
