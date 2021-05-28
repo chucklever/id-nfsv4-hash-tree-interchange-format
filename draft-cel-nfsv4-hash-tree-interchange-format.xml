@@ -290,7 +290,7 @@ Represent the hash tree data in a commonly recognized format that is independent
  toc="default">
 <name>Related Work</name>
 <t>
-Granted in 1982, US patent 4309569
+Granted in 1982, expired US patent 4309569
 <xref target="Merkle82" format="default" sectionFormat="of"/>
 covers the construction of a tree of digests.
 Initially, these "Merkle trees" helped
