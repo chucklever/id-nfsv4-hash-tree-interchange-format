@@ -227,7 +227,7 @@ We now have a small fixed-size piece of metadata
 that can protect potentially huge files.
 The trade-off is that
 the verifier must reconstitute the hash tree
-during installation or on-demand.
+during file installation or on-demand.
 File systems or remote filesystem clients
 can store or cache reconstituted trees in:
 </t>
@@ -252,8 +252,9 @@ Frequent verification protects that content
 against unwanted changes due to local storage or copying errors,
 malicious activity,
 or data retention issues.
-When verification is efficient, it can take place
-as often as during every file read operation.
+When verification is truly efficient, it can take place
+as often as during every application read operation
+without a significant impact on throughput.
 </t>
 <t>
 The current document's unique contribution is
@@ -281,6 +282,11 @@ Provide for a broadly-supported standard set of cryptographic algorithms
 Represent the hash tree data in a commonly recognized format that is independent of storage media
 </li>
 </ul>
+<t>
+Lastly, we note that a standard representation
+of hash tree metadata enables opportunities for
+hardware offload of content verification.
+</t>
 </section>
 
 <section
