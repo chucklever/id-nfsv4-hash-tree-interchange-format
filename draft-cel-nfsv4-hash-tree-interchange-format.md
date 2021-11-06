@@ -270,7 +270,7 @@ but reduces the integrity metadata's size.
 
 # Requirements Language
 
-{::boilerplate bcp14}
+{::boilerplate bcp14-tagged}
 
 # Hash Tree Metadata
 
