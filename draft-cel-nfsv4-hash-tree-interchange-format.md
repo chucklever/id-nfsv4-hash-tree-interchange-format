@@ -458,6 +458,14 @@ described in the current document.
 
 # Security Considerations
 
+It is important to note the narrow meaning of the digital
+signature in X.509 certificates as defined in this document.
+That signature connotes that the data content of the certificate
+has not changed since the certificate was signed,
+and it identifies the signer cryptographically.
+The signature does not confer any meaning or guarantees
+other than the integrity of the certificate's data content.
+
 ## X.509 Certificate Vulnerabilities
 
 The file content and hash tree can be unpacked
