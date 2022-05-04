@@ -381,13 +381,15 @@ how the fields in this new type-ID are used.
   }
 ~~~
 
-## Root Hash
+## New Certificate Fields
+
+### Root Hash
 
 The root digest field stores the digest
 that appears at the root of the represented Merkle tree.
 The digest appears as a hexadecimal integer.
 
-## Divergence Factor
+### Divergence Factor
 
 The value in the tree divergence factor field represents
 the maximum number of children nodes each node has
@@ -395,7 +397,7 @@ in the represented Merkle tree.
 A value of two, for example,
 means each node (except the leaf nodes) has no more than two children.
 
-## Tree Height
+### Tree Height
 
 The tree height field stores
 the distance from the represented Merkle tree's root node
@@ -403,7 +405,7 @@ to its lowest leaf node.
 A value of one, for example,
 means the tree has a single level at the root.
 
-## Block Size
+### Block Size
 
 The block size field contains
 the number of file content bytes
@@ -413,7 +415,7 @@ meaning each node in the tree contains
 a digest of up to 4096 bytes,
 starting on 4096-byte boundaries.
 
-## Salt Value
+### Salt Value
 
 The tree salt value is
 a hexadecimal integer
