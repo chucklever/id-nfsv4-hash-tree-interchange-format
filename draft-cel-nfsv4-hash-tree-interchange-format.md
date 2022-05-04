@@ -425,6 +425,19 @@ If the tree salt value is zero,
 salting is not to be used
 when reconstituting the represented Merkle tree.
 
+## Extended Key Usage Values
+
+{{Section 4.2.1.12 of RFC5280}} specifies the
+extended key usage X.509 certificate extension.
+This extension, which may appear in end-entity certificates,
+indicates one or more purposes for which the certified public key
+may be used in addition to or in place of
+the basic purposes indicated in the key usage extension.
+
+The inclusion of the codeSigning value (id-kp-codeSigning) indicates
+that the certificate has been issued for the purpose of allowing
+the holder to verify the integrity and provenance of file content.
+
 ## Validating Certificates and their Signatures
 
 When validating a certificate containing hash tree metadata,
